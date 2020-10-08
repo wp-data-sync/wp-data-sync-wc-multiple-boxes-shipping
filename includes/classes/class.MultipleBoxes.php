@@ -114,21 +114,23 @@ class MultipleBoxes {
 	}
 
 	/**
-	 * Get boxes.
+	 * Get values.
 	 *
 	 * @param $value
+	 * @param $key
+	 * @param $i
 	 *
-	 * @return array [
-	 *              weight => string,
-	 *              length => string,
-	 *              width  => string,
-	 *              height => string,
-	 *              price  => string
-	 *          ]
+	 * @return array|string
 	 */
 
-	public function get_boxes( $value ) {
-		return $this->boxes;
+	public function get_values( $value, $key, $i ) {
+
+		if ( FALSE !== $i ) {
+			return isset( $this->boxes[$key][$i] ) ? $this->boxes[$key][$i] : '';
+		}
+
+		return isset( $this->boxes[$key] ) ? $this->boxes[$key] : '';
+
 	}
 
 	/**
@@ -139,7 +141,7 @@ class MultipleBoxes {
 
 		$product = new WC_Product( $this->product_id );
 
-		add_filter( 'woocommerce_multiple_box_shipping_get_post_value', [ $this, 'get_boxes' ] );
+		add_filter( 'woocommerce_multiple_box_shipping_get_post_value', [ $this, 'get_values' ] );
 
 		$multibox_products = IgniteWoo_MultiBox_Products::instance();
 		$multibox_products->save_shipping_meta( $this->product_id, $product->is_type( 'variable') );
