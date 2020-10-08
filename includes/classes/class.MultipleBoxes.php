@@ -13,7 +13,6 @@ namespace WP_DataSync\Multiple_Boxes\Inc;
 
 use WP_DataSync\App\DataSync;
 use IgniteWoo_MultiBox_Products;
-use WC_Product;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -22,28 +21,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MultipleBoxes {
 
 	/**
-	 * @var array
-	 */
-
-	private $item_data;
-
-	/**
 	 * @var int
 	 */
 
 	private $product_id;
 
 	/**
-	 * @var DataSync
+	 * @var array
 	 */
 
-	private $data_sync;
+	private $values;
 
 	/**
 	 * @var array
 	 */
 
-	private $boxes;
+	private $boxes = [];
 
 	/**
 	 * @var MultipleBoxes
@@ -76,16 +69,14 @@ class MultipleBoxes {
 	/**
 	 * Set object properties.
 	 *
-	 * @param $item_data  array
 	 * @param $product_id int
-	 * @param $data_sync  DataSync
+	 * @param $values     array
 	 */
 
-	public function set_properties( $item_data, $product_id, $data_sync ) {
+	public function set_properties( $product_id, $values ) {
 
-		$this->item_data  = $item_data;
 		$this->product_id = $product_id;
-		$this->data_sync  = $data_sync;
+		$this->values     = $values;
 
 	}
 
@@ -97,19 +88,23 @@ class MultipleBoxes {
 
 	public function has_boxes() {
 
-		if ( $integrations = $this->data_sync->get_integrations() ) {
-
-			if ( isset( $integrations['multiple_boxes'] ) && is_array( $integrations['multiple_boxes'] ) ) {
-
-				$this->boxes = $integrations['multiple_boxes'];
-
-				return TRUE;
-
-			}
-
+		if ( is_array( $this->values ) ) {
+			return TRUE;
 		}
 
 		return FALSE;
+
+	}
+
+	/**
+	 * Set boxes.
+	 */
+
+	public function set_boxes() {
+
+		foreach ( $this->values as $key => $value ) {
+			array_push( $this->boxes[$key], $value );
+		}
 
 	}
 
@@ -118,19 +113,12 @@ class MultipleBoxes {
 	 *
 	 * @param $value
 	 * @param $key
-	 * @param $i
 	 *
-	 * @return array|string
+	 * @return array
 	 */
 
-	public function get_values( $value, $key, $i ) {
-
-		if ( FALSE !== $i ) {
-			return isset( $this->boxes[$key][$i] ) ? $this->boxes[$key][$i] : '';
-		}
-
-		return isset( $this->boxes[$key] ) ? $this->boxes[$key] : '';
-
+	public function get_box_values( $value, $key ) {
+		return isset( $this->boxes[$key] ) ? $this->boxes[$key] : [];
 	}
 
 	/**
@@ -139,12 +127,10 @@ class MultipleBoxes {
 
 	public function save() {
 
-		$product = new WC_Product( $this->product_id );
-
-		add_filter( 'woocommerce_multiple_box_shipping_get_post_value', [ $this, 'get_values' ] );
+		add_filter( 'woocommerce_multiple_box_shipping_get_post_value', [ $this, 'get_box_values' ], 10, 2 );
 
 		$multibox_products = IgniteWoo_MultiBox_Products::instance();
-		$multibox_products->save_shipping_meta( $this->product_id, $product->is_type( 'variable') );
+		$multibox_products->save_shipping_meta( $this->product_id );
 
 	}
 

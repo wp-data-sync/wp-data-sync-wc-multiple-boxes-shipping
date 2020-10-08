@@ -29,17 +29,23 @@ foreach ( glob( plugin_dir_path( __FILE__ ) . 'includes/**/*.php' ) as $file ) {
 	require_once $file;
 }
 
-add_action( 'wp_data_sync_item_request', function( $item_data, $product_id, $data_sync ) {
+/**
+ * Runs after all other WP data is processed.
+ * We use a priority of 999 to insure this runs after WooCommerce.
+ */
+
+add_action( 'wp_data_sync_integration_wc_multiple_boxes', function( $product_id, $values ) {
 
 	if ( class_exists('IgniteWoo_MultiBox_Products') ) {
 
 		$multiple_boxes = Inc\MultipleBoxes::instance();
-		$multiple_boxes->set_properties( $item_data, $product_id, $data_sync );
+		$multiple_boxes->set_properties( $product_id, $values );
 
 		if ( $multiple_boxes->has_boxes() ) {
+			$multiple_boxes->set_boxes();
 			$multiple_boxes->save();
 		}
 
 	}
 
-}, 10, 3 );
+}, 999, 2 );
