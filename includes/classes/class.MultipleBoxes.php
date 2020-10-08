@@ -118,7 +118,13 @@ class MultipleBoxes {
 	 *
 	 * @param $value
 	 *
-	 * @return array
+	 * @return array [
+	 *              weight => string,
+	 *              length => string,
+	 *              width  => string,
+	 *              height => string,
+	 *              price  => string
+	 *          ]
 	 */
 
 	public function get_boxes( $value ) {
