@@ -3,18 +3,14 @@
  * Plugin Name: WP Data Sync for WooCommerce Multiple Boxes Product Shipping
  * Plugin URI:  https://wpdatasync.com/products/
  * Description: Integrates WooCommerce Multiple Boxes Product Shipping with WP Data Sync
- * Version:     1.0.0
+ * Version:     2.0.0
  * Author:      WP Data Sync
  * Author URI:  https://wpdatasync.com
  * License:     GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-data-sync-multiple-boxes
  * Domain Path: /languages
- *
- * WC requires at least: 3.0
- * WC tested up to: 4.5.2
- *
- * Package:     WP_DataSync_Multiple_Boxes
+ * Package:     WP_DataSync
 */
 
 namespace WP_DataSync\Multiple_Boxes;
@@ -23,29 +19,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_DATA_SYNC_MB_VERSION', '1.0.0' );
-
-foreach ( glob( plugin_dir_path( __FILE__ ) . 'includes/**/*.php' ) as $file ) {
-	require_once $file;
-}
-
 /**
  * Runs after all other WP data is processed.
  * We use a priority of 999 to insure this runs after WooCommerce.
  */
 
-add_action( 'wp_data_sync_integration_wc_multiple_boxes', function( $product_id, $values ) {
+add_action( 'wp_data_sync_integration_wc_multiple_boxes', function( $product_id, $boxes ) {
 
-	if ( class_exists('IgniteWoo_MultiBox_Products') ) {
+	$the_boxes = [];
 
-		$multiple_boxes = Inc\MultipleBoxes::instance();
-		$multiple_boxes->set_properties( $product_id, $values );
+	foreach( $boxes as $box ) {
 
-		if ( $multiple_boxes->has_boxes() ) {
-			$multiple_boxes->set_boxes();
-			$multiple_boxes->save();
-		}
+		$values = array_values( $box );
+		$box    = implode( ',', $values );
+
+		$the_boxes[] = $box;
 
 	}
+
+	$the_boxes = implode( '|', $the_boxes );
+
+	update_post_meta( $product_id, '_wc_multibox_additional_box', $the_boxes, FALSE );
 
 }, 999, 2 );
